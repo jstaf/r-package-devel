@@ -1,0 +1,11 @@
+Package: TestPackage
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1
+Date: 2015-06-28
+Author: Who wrote it
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: More about what it does (maybe more than one line). This is a test.
+for word wrapping
+License: What license is it under?
+LazyData: TRUE
