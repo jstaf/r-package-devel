@@ -1,0 +1,166 @@
+Creating packages tutorial
+----------------------------
+
+## Check for a correct devtools install/development environment. 
+
+Protip: Use the RSTUDIO RELEASE PREVIEW for fancy code-checking!!!!
+
+```{r}
+install.packages(c("devtools", "roxygen2"))
+devtools::find_rtools()
+devtools::has_devel()
+```
+
+Both should return true. If not, you will need to install RTools (windows) or the XCode/Command-Line tools for Mac. (You may possibly need r-base-dev package for Linux.)
+
+What's the funky `::` operator? It's a shortcut for using functions and data from packages when you haven't actually loaded them with `library()`. 
+
+`X::Y()` is the equivalent of saying "from package X, use function Y"
+
+So this: 
+```{r}
+devtools::has_devel()
+```
+
+is the same as
+```{r}
+library(devtools)
+has_devel()
+```
+
+Neat, right? It'll become VERY useful later.
+
+-----------------------------------------------
+
+## Making Packages
+
+Okay now make a package with the built-in RStudio interface.
+
+New Project-> New Project in new directory -> New R Package (with git repo checked)
+
+Commit everything to git repo. (In case something goes wrong later...)
+
+Now go to RStudio's build tab and hit "Build & Reload". This will construct your package and tell R that it exists and is ready for use.
+
+As a test, run the following function (this is all your package contains right now): `hello()`
+
+Woo! We just made our first package. But why? Why do we want to make packages? Hopefully as we continue, it will become more apparent, but I'm putting my favorite reasons here:
++ Packages let us reuse functions/code/data between multiple projects/scripts without having to copy/paste them EVERY FREAKING TIME we want to use them.
++ We will be able to easily distribute our code to others through RStudio. As long as someone else has the `devtools` package, they can install your stuff.
++ R packages will no longer seem like magic. They all work the same way. If you can understand the basics, you'll be able to understand how they work, find errors, and examine others' source code for inspiration/tips.
++ It will impress your coworkers.
+
+--------------------------------------
+
+### So what is a package? 
+
+People have different definitions of what a package does, but they commonly are a set of functions and data that extend R's function. However, strictly speaking, they are anything that has a DESCRIPTION file (this is what RStudio/devtools considers a package).
+
+So what goes into a package and how does it work? What are we going to do when we make a package? Lets go over what each of the files do.
+
+#### DESCRIPTION
+
+This is the description of your package. This has all of the information needed to understand what your package does, who wrote it, and what other packages it requires to run. Fill in the fields as you like right now. If you want something to be on multiple lines, you'll need to hit return mid sentence and add two spaces before you continue typing (a bit irksome, but that's life).
+
+What if we want our package to require other packages to run? Use the following code:
+```{r}
+devtools::use_package("NameOfPackage")
+```
+
+You should see the name of the package pop up under imports. If not close the file and open again and it should be there. Try adding an import for ggplot2.
+
+#### NAMESPACE
+
+This is a special file that is handled automatically by RStudio. You will never need to touch it.
+
+However, in the interests of being thorough, it contains the "names" of everything you add to your package. Stuff that is found in this file becomes available to the user. RStudio will automatically generate this for you as you write code. 
+
+#### .gitignore
+
+Stuff you don't want git to see. Add a new line here with the filename for every file you wish to hide from it (you can use the "*" character as a wildcard).
+
+#### .Rbuildignore
+
+This is another special file that you will never need to touch. It contains information on which files to ignore when building your package from source.
+
+#### R/ (directory)
+
+This is where our actual R code lives. So what types of code goes in here? Long story short: functions, methods, and classes (we'll explain what methods/classes are later). Generally scripts (ie. probably what you've been writing up until now) are NOT ALLOWED.
+
+Why can't we use scripts here?
+
+R packages are run differently from normal R code. In a normal R script/markdown or on the console, code is run when you execute it (when you "source it" or hit enter). In an R package, the code is run only once: when the package is built (code is only run when you hit the "build and reload" button). 
+
+So if you put a script in your R/ directory, it'll be run when you hit "build and reload" 
+
+As a BAD EXAMPLE to demonstrate this, create a new Rscript and paste this in there.
+```{r}
+print("this is why not to use scripts")
+4 + 5
+```
+Save the file under scriptsAreBad.R in the R/ directory. Now rebuild your project. Notice anything weird?
+
+So how do we get our code to run when we want it to? Make it a function. Here's a good example (paste this code into a new R script, save it in R/, and rebuild)
+
+```{r}
+functionsAreGood <- function() {
+	print("this is why not to use scripts")
+	return(4 + 5)
+}
+```
+
+Now run `functionsAreGood()`. Our code runs when its intended to. Yay!
+
+As you can see, when adding code to your packages, it is a much better idea to use functions instead of script. If you want to add a script to your package that does a lot of work, it is usually best to break it down into a couple smaller functions that each do a small, discrete chunk of the work (loading data/doing calculations/etc.) instead of having one big function that does everything.
+
+Another thing to keep in mind. Because code only is run when the package is built, how do we run code from other packages? We can't use `library()` because that only gets run when we build things!
+
+Answer: the `::` operator. Let's try an example using ggplot2.
+
+Save this into a new .R file:
+```{r}
+testPlot <- function() {
+  ggplot2::ggplot(mapping = ggplot2::aes(x = 1:10, y = 1:10)) +
+    ggplot2::geom_point()
+}
+```
+
+Build/reload, then run `testPlot()`. This *should* work. 
+
+Awesome! So that is the basics of putting stuff and getting it to work in the R/ directory. Note that when you are saving functions/other stuff into .R files, the name of the file doesn't matter, and you can have any number of functions/things in a single .R file. To jump to a function press "Ctrl + ." and then start typing its name!
+
+#### data/ (directory)
+
+This directory holds data. More specifically, this directory holds data that your users can see and access. Ever wondered where the example data comes from in packages? This is it.
+
+Let's see if we can include the gapminder dataset in our package.
+
+```{r}
+# load the gapminder data...
+library(gapminder)
+gap <- gapminder
+# check to make sure its what we think it is...
+head(gap)
+# save it under gapminder.rda in the data/ directory
+devtools::use_data(gap)
+# note: this is equivalent to the following line:
+# save(gap, file = "data/gap.rda")
+```
+
+Now let's see if we can use it! Rebuild your package then enter the following code:
+```{r}
+# Get rid of the data to test loading it as a demo
+rm(gap)
+# See what datasets are available. Scroll to the bottom and our data should be there!
+data()
+# To load the data
+data(gap)
+head(gap)
+```
+
+#### man/ (directory)
+
+This is where the manuals for our functions/stuff lives. Also known as what pops up when we type `?functionName'
+
+Let's open it up and examine the example docs (hello.Rd) for the `hello()` function that our package came up with. Looks complicated. I'd rather not type that out. Why not let RStudio make it for us?
+
