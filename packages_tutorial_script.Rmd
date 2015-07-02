@@ -45,9 +45,14 @@ Now go to RStudio's build tab and hit "Build & Reload". This will construct your
 As a test, run the following function (this is all your package contains right now): `hello()`
 
 Woo! We just made our first package. But why? Why do we want to make packages? Hopefully as we continue, it will become more apparent, but I'm putting my favorite reasons here:
+
 + Packages let us reuse functions/code/data between multiple projects/scripts without having to copy/paste them EVERY FREAKING TIME we want to use them.
+
 + We will be able to easily distribute our code to others through RStudio. As long as someone else has the `devtools` package, they can install your stuff.
-+ R packages will no longer seem like magic. They all work the same way. If you can understand the basics, you'll be able to understand how they work, find errors, and examine others' source code for inspiration/tips.
+
++ R packages will no longer seem like magic. They all work the same way. If you can understand
+the basics, you'll be able to understand how they work, find errors, and examine others' source code for inspiration/tips.
+
 + It will impress your coworkers.
 
 --------------------------------------
@@ -332,6 +337,13 @@ What if you want to use your package on another computer? What if you have a col
 Package won't build, throwing an error with a traceback. 
 
   * Your code includes an error somewhere. Go to the location indicated by the traceback and fix it. Using the RStudio release preview helps avoid this, as it checks your code for errors as you write it.
+  
+
+Package won't build, giving an error that says something like "setwd(), permission denied" .... In my experience (only run into this on Windows so far), either one of the following two things are wrong:
+
+  * RTools is not installed. If `devtools::find_rtools()` returns TRUE, this isn't the case.
+  
+  * RStudio doesn't have permission to mess with the files on your system. Close RStudio and re-run it with administrator priveliges, then try again.
 
 
 Documentation is unavailable for a function, even though you **just** rand `devtools::document()`
