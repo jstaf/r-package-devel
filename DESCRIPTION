@@ -11,3 +11,4 @@ License: What license is it under?
 LazyData: TRUE
 Imports: ggplot2,
     plyr
+Suggests: testthat

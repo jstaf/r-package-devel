@@ -6,12 +6,12 @@ Creating packages tutorial
 Protip: Use the RSTUDIO RELEASE PREVIEW for fancy code-checking!!!!
 
 ```{r}
-install.packages(c("devtools", "roxygen2"))
+# install.packages(c("devtools", "roxygen2", "knitr", "testthat"))
 devtools::find_rtools()
 devtools::has_devel()
 ```
 
-Both should return true. If not, you will need to install RTools (windows) or the XCode/Command-Line tools for Mac. (You may possibly need r-base-dev package for Linux.)
+Both should return true. If not, you will need to install RTools (Windows) or the XCode/Command-Line tools for Mac. (You may possibly need r-base-dev package for Linux.)
 
 What's the funky `::` operator? It's a shortcut for using functions and data from packages when you haven't actually loaded them with `library()`. 
 
@@ -58,16 +58,20 @@ People have different definitions of what a package does, but they commonly are 
 
 So what goes into a package and how does it work? What are we going to do when we make a package? Lets go over what each of the files do.
 
+--------------------------------------------------
+
 #### DESCRIPTION
 
 This is the description of your package. This has all of the information needed to understand what your package does, who wrote it, and what other packages it requires to run. Fill in the fields as you like right now. If you want something to be on multiple lines, you'll need to hit return mid sentence and add two spaces before you continue typing (a bit irksome, but that's life).
 
 What if we want our package to require other packages to run? Use the following code:
-```{r}
+```{r, eval=FALSE}
 devtools::use_package("NameOfPackage")
 ```
 
 You should see the name of the package pop up under imports. If not close the file and open again and it should be there. Try adding an import for ggplot2.
+
+---------------------------------------------
 
 #### NAMESPACE
 
@@ -75,13 +79,19 @@ This is a special file that is handled automatically by RStudio. You will never 
 
 However, in the interests of being thorough, it contains the "names" of everything you add to your package. Stuff that is found in this file becomes available to the user. RStudio will automatically generate this for you as you write code. 
 
+---------------------------------------------
+
 #### .gitignore
 
 Stuff you don't want git to see. Add a new line here with the filename for every file you wish to hide from it (you can use the "*" character as a wildcard).
 
+----------------------------------------
+
 #### .Rbuildignore
 
 This is another special file that you will never need to touch. It contains information on which files to ignore when building your package from source.
+
+----------------------------------------
 
 #### R/ (directory)
 
@@ -94,7 +104,7 @@ R packages are run differently from normal R code. In a normal R script/markdown
 So if you put a script in your R/ directory, it'll be run when you hit "build and reload" 
 
 As a BAD EXAMPLE to demonstrate this, create a new Rscript and paste this in there.
-```{r}
+```{r, eval=FALSE}
 print("this is why not to use scripts")
 4 + 5
 ```
@@ -102,7 +112,7 @@ Save the file under scriptsAreBad.R in the R/ directory. Now rebuild your projec
 
 So how do we get our code to run when we want it to? Make it a function. Here's a good example (paste this code into a new R script, save it in R/, and rebuild)
 
-```{r}
+```{r, eval=FALSE}
 functionsAreGood <- function() {
 	print("this is why not to use scripts")
 	return(4 + 5)
@@ -123,11 +133,16 @@ testPlot <- function() {
   ggplot2::ggplot(mapping = ggplot2::aes(x = 1:10, y = 1:10)) +
     ggplot2::geom_point()
 }
+
+# Build/reload, then run `testPlot()`. This *should* work. 
+testPlot()
 ```
 
-Build/reload, then run `testPlot()`. This *should* work. 
-
 Awesome! So that is the basics of putting stuff and getting it to work in the R/ directory. Note that when you are saving functions/other stuff into .R files, the name of the file doesn't matter, and you can have any number of functions/things in a single .R file. To jump to a function press "Ctrl + ." and then start typing its name!
+
+One final note: R doesn't actually read anything in subdirectories of R/. So this means you can't organize your files using folders, which is annoying. Your best bet for organizing your files is clever naming/grouping related functions in a single file. 
+
+-------------------------------------------------------
 
 #### data/ (directory)
 
@@ -135,7 +150,7 @@ This directory holds data. More specifically, this directory holds data that you
 
 Let's see if we can include the gapminder dataset in our package.
 
-```{r}
+```{r, eval=FALSE}
 # load the gapminder data...
 library(gapminder)
 gap <- gapminder
@@ -148,7 +163,7 @@ devtools::use_data(gap)
 ```
 
 Now let's see if we can use it! Rebuild your package then enter the following code:
-```{r}
+```{r, eval=FALSE}
 # Get rid of the data to test loading it as a demo
 rm(gap)
 # See what datasets are available. Scroll to the bottom and our data should be there!
@@ -158,9 +173,182 @@ data(gap)
 head(gap)
 ```
 
+-------------------------------
+
 #### man/ (directory)
 
 This is where the manuals for our functions/stuff lives. Also known as what pops up when we type `?functionName'
 
 Let's open it up and examine the example docs (hello.Rd) for the `hello()` function that our package came up with. Looks complicated. I'd rather not type that out. Why not let RStudio make it for us?
 
+In an awesome turn of events, we don't actually have to ever touch the man/ folder to create documentation. When using roxygen2 to generate documentation, all the work is done where the actual function/object is defined (in the .R file in the R/ folder).
+
+Let's go back to the R/ folder and make a new function that does basic addition as an example.
+
+Copy and paste this into a new .R file (or write a function of your own!).
+```{r, eval=FALSE}
+adder <- function(x, y) {
+  return(x + y)
+}
+```
+
+Now, with the keyboard cursor located somewhere inside the function, press Ctrl+Alt+Shift+R (or you can go to Code -> Insert Roxygen skeleton in the menu). Your function should now look like this:
+```{r, eval=FALSE}
+#' Title
+#'
+#' @param x 
+#' @param y 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+adder <- function(x, y) {
+  return(x + y)
+}
+```
+
+This is a "skeleton" set of documentation for you to add to. Note that the `#'` is a special type of comment that indicates that each line is something for Roxygen to read and document. Each item of information is preceded by the `@` character. 
+
+Heres what each of the common tags mean:
+
+* `(First line, no tag needed)` - This is the title. What does your function do?
+
+* `(Second paragraph, no tag needed)` - This is an in-depth description of what your function does.
+
+* `@param` - What should users use as the input for this function argument?
+
+* `@return` - What does this function return? Delete this tag completely if you dont want to specify this or documentation cannot be built.
+
+* `@export` - If this tag is present, a user can access this function (complicated explanation: it will appear in your NAMESPACE file, and objects that appear there are visible to end users). If you want people to be able to run this part, leave this tag in. If you want this to be a function that only your package code can use, delete this tag.
+
+* `@seealso` - Are there any other functions you'd like the user to know about that are related to this one?
+
+* `@examples` - A set of **runnable** code examples for users can simply copy/paste into the console if they get confused. Delete this tag completely if you dont want to specify this or documentation cannot be built.
+
+I've filled it out with the necessary information here as an example:
+```{r, eval=FALSE}
+#' Add two numbers
+#'
+#' This is a riveting description that describes what your function does. This
+#' is a link to \code{\link{hello}}.
+#'
+#' @param x A number
+#' @param y Another number!
+#'
+#' @return Returns the result of addition
+#' @export
+#'
+#' @seealso \code{\link{hello}}
+#'
+#' @examples
+#' adder(1, 2)
+#'
+adder <- function(x, y) {
+  return(x + y)
+}
+```
+
+Now run `devtools::document()` and build/reload your project. Now when you type `?adder` (or search for the documentation in any other manner), the documentation we just wrote will pop up.
+
+------------------------------------------
+
+#### tests/ (directory)
+
+Sometimes you want to want to check your code to make sure it runs properly. You can test it informally (by testing functions manually) or you can automate it with a package like `testthat` (also called "unit testing"). I'll give a quick example or two on how to perform unit testing using `testthat`.
+
+`devtools::use_testthat()` will set up your package to be run with `testthat`.
+
+To create a unit test, create a .R file inside tests/testthat/.
+
+Inside this file, create a series of tests using the following format:
+
+```{r, eval=FALSE}
+test_that("message that explain what this test does", {
+  expectation1
+  expectation2
+  expectation3
+})
+```
+
+Simply put, a test generally tests one "unit" of functionality. Expectations are the actual individual trials your code needs to complete to pass this test. Your expectations can vary, but generally the left side of an expectation must match the right side. Here are a few examples of what `testthat` expectations look like:
+
+`expect_equal()` - Used to test whether two numbers are the same.
+```{r, eval=FALSE}
+expect_equal(number1, number2)
+```
+
+`expect_match()` - Does the string on the left contain the string on the right (CASE-SENSITIVE)?
+```{r, eval=FALSE}
+expect_match(string_you_are_testing, does_it_contain_this)
+```
+
+`expect_error()` and `expect_warning()` - does your code generate a warning/error like it's supposed to?
+```{r, eval=FALSE}
+expect_warning(expression_to_test)
+expect_warning(expression_to_test, error_message)
+```
+
+Let's try making an example test file for our `adder()` function. Note that I've added a function called `context()` with the description of what this file is testing near the top.
+```{r, eval=FALSE}
+context("We're testing the adder function")
+
+test_that("Adder adds numbers together properly", {
+  expect_equal(adder(2, 3), 5)
+  expect_equal(adder(2, -2), 0)
+})
+
+test_that("Adding fails when given weird input", {
+  expect_error(adder(1, "ted"))
+  expect_equal(adder(4, NA), NA)
+})
+```
+
+IMPORTANT: your test file needs to start with "test" or `testthat` won't find it!
+
+To run our tests, we simply use:
+```{r}
+devtools::test()
+```
+
+Huh, that's weird. It appears that NA is not actually equal to NA here (due to being different object types). I learned something new there... but thats informative and demonstrates what happens when you fail a test! (note that the passed expectations in a test file are represented by "."s).
+
+As a side note, I love that "this is why not to use scripts" keeps popping up over and over as a nice reminder...
+
+--------------------------------------------------------
+
+### Using and distributing your package
+
+Those are the raw basics to making a package. Sure, you add other stuff as well, like compiled C++ or Java code, unit tests (see testthat package), or other package-specific features, but this should be enough to get started.
+
+How do you use a package that you've written? It's as simple as using `library(yourPackageName)`, the same as any other package. After all, we *did* just build a real package.
+
+What if you want to use your package on another computer? What if you have a colleague that wants to use it on their computer? `devtools::install_github("yourGitHubAccount/repositoryName")` will install the package for you along with the required dependencies (that you specified in the "Imports" section in the DESCRIPTION file). The only prerequisites are that your end user has the `devtools` package and the necessary requirements to build stuff from source (RTools on Windows installations). You obviously need to have your package on GitHub for this to work, but an equivalent command also exists for other online code repositories as well (as an example `devtools::install_bitbucket()` will install something from BitBucket).
+
+---------------------------------------------------------
+
+### Common errors (that I've run into at least)
+
+Package won't build, throwing an error with a traceback. 
+
+  * Your code includes an error somewhere. Go to the location indicated by the traceback and fix it. Using the RStudio release preview helps avoid this, as it checks your code for errors as you write it.
+
+
+Documentation is unavailable for a function, even though you **just** rand `devtools::document()`
+
+  * Make sure you've rebuilt the package, then try again.
+  
+  
+A function/dataset/documentation element cannot be found even though you are 100% sure it's there and have rebuilt the package.  
+
+  * If you've renamed a file, changing the capitalization of a function, RStudio won't actually rebuild the files because it is case-insensitive (whereas R is case-sensitive). The `Build -> Clean and Rebuild` option will solve this, deleting all traces of the package from R, and then completely rebuilding it from source.
+  
+  
+"Cyclic namespace dependency detected" error  
+
+  * You've likely defined something with the same name twice. Check your code carefully to make sure you haven't duplicated any function definitions. I've only really gotten this one when converting existing functions to methods, so it's best to be careful.
+
+
+I want to get rid of a package. I've either renamed it or simply don't want it anymore.  
+
+  * `remove.packages("packageName")`
