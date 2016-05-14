@@ -3,15 +3,15 @@ Creating packages tutorial
 
 ## Check for a correct devtools install/development environment. 
 
-Protip: Use the RSTUDIO RELEASE PREVIEW for fancy code-checking!!!!
+Tip: The RStudio Release Preview has the most up-to-date build tools and code-linting features. I recommend using it to avoid mistakes.
 
 ```{r}
-# install.packages(c("devtools", "roxygen2", "knitr", "testthat"))
+# install.packages(c("devtools", "roxygen2", "knitr", "testthat", "ggplot2"))
 devtools::find_rtools()
 devtools::has_devel()
 ```
 
-Both should return true. If not, you will need to install RTools (Windows) or the XCode/Command-Line tools for Mac. (You may possibly need r-base-dev package for Linux.)
+Both should return true. If not, you will need to install RTools (Windows) or the XCode/Command-Line tools for Mac. (You should already have the r-base-dev package on Linux.)
 
 What's the funky `::` operator? It's a shortcut for using functions and data from packages when you haven't actually loaded them with `library()`. 
 
@@ -34,11 +34,11 @@ Neat, right? It'll become VERY useful later.
 
 ## Making Packages
 
-Okay now make a package with the built-in RStudio interface.
+Okay let's make a package with the built-in RStudio interface.
 
 New Project-> New Project in new directory -> New R Package (with git repo checked)
 
-Commit everything to git repo. (In case something goes wrong later...)
+Commit everything to the git repo. (In case something goes wrong later...)
 
 Now go to RStudio's build tab and hit "Build & Reload". This will construct your package and tell R that it exists and is ready for use.
 
@@ -74,7 +74,7 @@ What if we want our package to require other packages to run? Use the following 
 devtools::use_package("NameOfPackage")
 ```
 
-You should see the name of the package pop up under imports. If not close the file and open again and it should be there. Try adding an import for ggplot2.
+You should see the name of the package pop up under imports. If not close the file and open again and it should be there. Try adding an import for `ggplot2`.
 
 ---------------------------------------------
 
@@ -115,7 +115,7 @@ print("this is why not to use scripts")
 ```
 Save the file under scriptsAreBad.R in the R/ directory. Now rebuild your project. Notice anything weird?
 
-So how do we get our code to run when we want it to? Make it a function. Here's a good example (paste this code into a new R script, save it in R/, and rebuild)
+So how do we get our code to run when we want it to? Make it a function. Here's a good example (paste this code into a new R script, save it in R/, and rebuild).
 
 ```{r, eval=FALSE}
 functionsAreGood <- function() {
